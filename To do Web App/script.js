@@ -1,69 +1,106 @@
-const addBtn = document.getElementById('addBtn');
-const taskInput = document.getElementById('taskInput');
-const taskList = document.getElementById('taskList');
-const clearAllBtn = document.getElementById('clearAllBtn');
+const taskForm = document.getElementById('task-form');
+const taskList = document.getElementById('task-list');
+const filterCategory = document.getElementById('filter-category');
+const searchInput = document.getElementById('search-input');
+const themeToggle = document.getElementById('toggle-theme');
 
-const totalTasksEl = document.getElementById('totalTasks');
-const completedTasksEl = document.getElementById('completedTasks');
-const remainingTasksEl = document.getElementById('remainingTasks');
+let tasks = JSON.parse(localStorage.getItem('todo-tasks')) || [];
 
-addBtn.addEventListener('click', addTask);
-taskInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') addTask();
-});
+function saveTasks() {
+  localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+}
 
-clearAllBtn.addEventListener('click', () => {
+function renderTasks() {
   taskList.innerHTML = '';
-  updateTaskCounts();
+  const search = searchInput.value.toLowerCase();
+  const filter = filterCategory.value;
+
+  let completed = 0;
+
+  tasks.forEach((task, index) => {
+    if (
+      (filter !== "All" && task.category !== filter) ||
+      !task.desc.toLowerCase().includes(search)
+    ) return;
+
+    const li = document.createElement('li');
+    if (task.completed) li.classList.add('completed');
+    if (new Date(task.time) < new Date() && !task.completed) li.classList.add('overdue');
+
+    li.setAttribute('data-category', task.category);
+    li.innerHTML = `
+      <div class="task-info">
+        <strong>${task.desc}</strong>
+        <div class="task-meta">
+          ${task.category} | Priority: ${task.priority} | Due: ${new Date(task.time).toLocaleString()}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button onclick="toggleComplete(${index})">✔</button>
+        <button onclick="editTask(${index})">✎</button>
+        <button onclick="deleteTask(${index})">🗑</button>
+      </div>
+    `;
+
+    if (task.completed) completed++;
+    taskList.appendChild(li);
+  });
+
+  document.getElementById('total-count').textContent = tasks.length;
+  document.getElementById('completed-count').textContent = completed;
+  document.getElementById('pending-count').textContent = tasks.length - completed;
+}
+
+taskForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const desc = document.getElementById('task-input').value;
+  const time = document.getElementById('task-time').value;
+  const category = document.getElementById('task-category').value;
+  const priority = document.getElementById('task-priority').value;
+
+  tasks.push({ desc, time, category, priority, completed: false });
+  saveTasks();
+  renderTasks();
+  taskForm.reset();
 });
 
-function addTask() {
-  const taskText = taskInput.value.trim();
-  if (taskText === '') {
-    alert('Please enter a task!');
-    return;
+function toggleComplete(index) {
+  tasks[index].completed = !tasks[index].completed;
+  saveTasks();
+  renderTasks();
+}
+
+function editTask(index) {
+  const task = tasks[index];
+  const newDesc = prompt('Edit Task:', task.desc) || task.desc;
+  const newCategory = prompt('Edit Category:', task.category) || task.category;
+  const newPriority = prompt('Edit Priority:', task.priority) || task.priority;
+  const newTime = prompt('Edit Due Time (YYYY-MM-DDTHH:MM):', task.time) || task.time;
+
+  tasks[index] = { ...task, desc: newDesc, category: newCategory, priority: newPriority, time: newTime };
+  saveTasks();
+  renderTasks();
+}
+
+function deleteTask(index) {
+  if (confirm('Delete this task?')) {
+    tasks.splice(index, 1);
+    saveTasks();
+    renderTasks();
   }
-
-  const li = document.createElement('li');
-  li.className = 'task-item';
-
-  const span = document.createElement('span');
-  span.textContent = taskText;
-
-  const buttonGroup = document.createElement('div');
-  buttonGroup.className = 'task-buttons';
-
-  const completeBtn = document.createElement('button');
-  completeBtn.textContent = '✓';
-  completeBtn.className = 'complete-btn';
-  completeBtn.addEventListener('click', () => {
-    li.classList.toggle('completed');
-    updateTaskCounts();
-  });
-
-  const deleteBtn = document.createElement('button');
-  deleteBtn.textContent = '🗑';
-  deleteBtn.className = 'delete-btn';
-  deleteBtn.addEventListener('click', () => {
-    li.remove();
-    updateTaskCounts();
-  });
-
-  buttonGroup.appendChild(completeBtn);
-  buttonGroup.appendChild(deleteBtn);
-  li.appendChild(span);
-  li.appendChild(buttonGroup);
-  taskList.appendChild(li);
-
-  taskInput.value = '';
-  updateTaskCounts();
 }
 
-function updateTaskCounts() {
-  const allTasks = taskList.querySelectorAll('li.task-item');
-  const completed = taskList.querySelectorAll('li.completed');
+filterCategory.addEventListener('change', renderTasks);
+searchInput.addEventListener('input', renderTasks);
 
-  totalTasksEl.textContent = `Total: ${allTasks.length}`;
-  completedTasksEl.textContent = `Completed: ${completed.length}`;
-  remainingTasksEl.textContent = `Remaining: ${allTasks.length - completed.length}`;
-}
+themeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('light');
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+});
+
+(function init() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.body.classList.add(savedTheme);
+  renderTasks();
+})();
