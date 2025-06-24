@@ -3,28 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Enhanced To-Do List</title>
+  <title>Enhanced To-Do Web App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="todo-container">
-    <h1>📝 To-Do List</h1>
+  <header class="app-header">
+    <h1>📝 TO-DO WEB APP</h1>
+    <button id="toggle-theme">🌓 Theme</button>
+  </header>
 
-    <div class="input-group">
-      <input type="text" id="taskInput" placeholder="Enter a new task..." />
-      <button id="addBtn">Add</button>
+  <div class="container">
+    <form id="task-form">
+      <input type="text" id="task-input" placeholder="Task" required />
+      <input type="datetime-local" id="task-time" required />
+      <select id="task-category">
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+        <option value="Others">Others</option>
+      </select>
+      <select id="task-priority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <button type="submit">Add</button>
+    </form>
+
+    <div class="filter">
+      <input type="text" id="search-input" placeholder="Search..." />
+      <label for="filter-category">Filter:</label>
+      <select id="filter-category">
+        <option value="All">All</option>
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+        <option value="Others">Others</option>
+      </select>
     </div>
 
-    <div class="task-summary">
-      <span id="totalTasks">Total: 0</span>
-      <span id="completedTasks">Completed: 0</span>
-      <span id="remainingTasks">Remaining: 0</span>
+    <div class="summary">
+      <span>Total: <strong id="total-count">0</strong></span>
+      <span>Completed: <strong id="completed-count">0</strong></span>
+      <span>Pending: <strong id="pending-count">0</strong></span>
     </div>
 
-    <ul id="taskList"></ul>
-
-    <button id="clearAllBtn">Clear All Tasks</button>
+    <ul id="task-list"></ul>
   </div>
+
+  <footer class="app-footer">
+    <p>&copy; 2025 Abdul Aziz Shaik • All rights reserved • Made with ❤️</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
